@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace UiPathTeam.ActivityReader
 {
@@ -9,6 +11,8 @@ namespace UiPathTeam.ActivityReader
         private List<string> filenames = new List<string>();
 
         private ClassDatabase db = new ClassDatabase();
+
+        private int verboseLevel = 0;
 
         public PrintCommand()
         {
@@ -22,6 +26,10 @@ namespace UiPathTeam.ActivityReader
                 if (next == "-debug")
                 {
                     Program.debug = true;
+                }
+                else if (next == "-verbose" || next == "-v")
+                {
+                    verboseLevel++;
                 }
                 else if (Directory.Exists(next))
                 {
@@ -84,7 +92,7 @@ namespace UiPathTeam.ActivityReader
                 {
                     if (c.IsPublic && !c.IsAbstract && c.IsActivity)
                     {
-                        Console.WriteLine("    {0}", c.Name);
+                        Console.WriteLine("    {0}{1}", c.Name, FormatSuperClassName(" ({0})", c));
                         foreach (var property in c.Properties)
                         {
                             Console.WriteLine("        {0} ({1})", property.Name, TypeString.Symplify(property.Type));
@@ -95,6 +103,48 @@ namespace UiPathTeam.ActivityReader
                         Console.WriteLine("# TYPE={0} IsPub={1} IsAbs={2} IsAct={3}", c.Name, c.IsPublic, c.IsAbstract, c.IsActivity);
                     }
                 }
+            }
+        }
+
+        private string FormatSuperClassName(string format, ClassRecord cr)
+        {
+            if (verboseLevel > 1)
+            {
+                var sb = new StringBuilder();
+                sb.Append(TypeString.Symplify(cr.SuperClassFullName));
+                bool found;
+                do
+                {
+                    found = false;
+                    foreach (var packageName in db.PackageNames)
+                    {
+                        try
+                        {
+                            var cr2 = db.SelectByPackageName(packageName).Single((cr1) => cr1.FullName == cr.SuperClassFullName);
+                            if (cr2 != null)
+                            {
+                                cr = cr2;
+                                sb.Append(" : ");
+                                sb.Append(TypeString.Symplify(cr.SuperClassFullName));
+                                found = true;
+                                break;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+                while (found);
+                return string.Format(format, sb.ToString());
+            }
+            else if (verboseLevel == 1)
+            {
+                return string.Format(format, TypeString.Symplify(cr.SuperClassFullName));
+            }
+            else
+            {
+                return string.Empty;
             }
         }
     }

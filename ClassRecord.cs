@@ -38,6 +38,14 @@ namespace UiPathTeam.ActivityReader
             }
         }
 
+        public string FullName
+        {
+            get
+            {
+                return _td.FullName;
+            }
+        }
+
         private string _namespace = null;
 
         public string Namespace
@@ -66,6 +74,14 @@ namespace UiPathTeam.ActivityReader
             get
             {
                 return _td.BaseType != null ? GetSimpleName(_td.BaseType.FullName) : "";
+            }
+        }
+
+        public string SuperClassFullName
+        {
+            get
+            {
+                return _td.BaseType != null ? _td.BaseType.FullName : string.Empty;
             }
         }
 
