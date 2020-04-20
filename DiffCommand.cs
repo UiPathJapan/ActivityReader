@@ -91,7 +91,12 @@ namespace UiPathTeam.ActivityReader
             }
             else
             {
-                var ss = Directory.GetFiles(Path.GetDirectoryName(path), Path.GetFileName(path));
+                var dn = Path.GetDirectoryName(path);
+                if (dn == "")
+                {
+                    dn = ".";
+                }
+                var ss = Directory.GetFiles(dn, Path.GetFileName(path));
                 if (ss.Length == 1)
                 {
                     return ss[0];
